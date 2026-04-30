@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  name        String
+  login       String   @unique
+  password    String
+  lastLoginAt DateTime @default(now())
+}
+
+model Language {
+  id          Int           @id @default(autoincrement())
+  name        String
+  code        String        @unique
+  isDefault   Boolean       @default(false)
+  isActive    Boolean       @default(true)
+  translations Translation[]
+}
+
+/// Polymorphic text rows: modelType + modelId (e.g. Group + 1 for group id 1).
+model Translation {
+  id         Int      @id @default(autoincrement())
+  languageId Int
+  modelId    Int
+  modelType  String
+  field      String   @map("key")
+  content    String   @map("value")
+  language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@unique([modelId, modelType, field, languageId])
+  @@index([modelId, modelType])
+}
+
+model Group {
+  id          Int         @id @default(autoincrement())
+  name        String
+  slug        String      @unique
+  description String?
+  items       GroupItem[]
+}
+
+/// Ordered row inside a Group — translate via Translation (modelType GroupItem).
+model GroupItem {
+  id        Int    @id @default(autoincrement())
+  groupId   Int
+  sortOrder Int    @default(0)
+  group     Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, sortOrder])
+}
+
+
+
+/// Media paths (image/video) are non-translatable. Text lives in Translation with modelType = Hero.
+model Hero {
+  id    Int     @id @default(autoincrement())
+  video String?
+  image String?
+}
+
+model Company {
+  id         Int     @id @default(autoincrement())
+  image      String
+  openedYear Int?
+  elements   Json?
+  /** e.g. Telegram chat id for notifications (admin-only; not exposed on public API). */
+  chatId     String?
+  /** Bot token for integrations (admin-only; not exposed on public API). */
+  botToken   String?
+}
+
+model Service {
+  id    Int    @id @default(autoincrement())
+  image String
+}
+
+model Partner {
+  id    Int    @id @default(autoincrement())
+  image String
+  link  String
+}
+
+/// Contact / project inquiry submitted from the public site (no auth).
+model Order {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  companyName String?   @default("")
+  phone       String
+  email       String?
+  message     String?
+  createdAt   DateTime @default(now())
+}

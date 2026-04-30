@@ -1,0 +1,26 @@
+# Netlify — Next.js (OpenNext adapter via @netlify/plugin-nextjs)
+# Docs: https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/
+#
+# Publish must be the Next.js build output (`.next`), not the repo root. If the
+# Netlify UI sets “Publish directory” to `.` or `/`, @netlify/plugin-nextjs fails
+# with: "publish directory cannot be the same as the base directory".
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# If the Git repo root is above this app (monorepo), set base in the UI or here:
+# [build]
+#   base = "frontend"
+#   command = "npm run build"
+#   publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # NEXT_PUBLIC_* is inlined into JS at build time; if flagged “secret” in Netlify UI,
+  # secret scanning would fail the build. Omit scanning for this key (public URL only).
+  # https://ntl.fyi/configure-secrets-scanning
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_API_URL"

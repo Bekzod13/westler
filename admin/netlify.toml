@@ -1,0 +1,17 @@
+# Netlify: connect repo with base directory `admin` (or deploy from `admin/` as site root).
+# Set `VITE_API_URL` in Netlify → Site configuration → Environment variables (Production + Preview as needed).
+
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Vite inlines VITE_* into the client bundle; the API base URL is public by design, not a credential.
+  SECRETS_SCAN_OMIT_KEYS = "VITE_API_URL"
+
+# React Router: direct loads of /dashboard, /banners, … must serve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
